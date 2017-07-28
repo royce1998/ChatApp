@@ -3,8 +3,7 @@ import java.io.*;
 import java.util.*;
 
 public class Client  {
-
-
+	public static ArrayList<Integer> rooms = new ArrayList<Integer>();
 	private ObjectInputStream sInput;		// read
 	private ObjectOutputStream sOutput;		// write
 	private Socket socket;
@@ -70,8 +69,8 @@ public class Client  {
 	}
 
 	public static void main(String[] args) {
-		int portNumber = 1450;
-		String serverAddress = "192.168.0.20"; // this is the local ip address of my computer
+		int portNumber = 1400;
+		String serverAddress = "192.168.0.137"; // this is the local ip address of my computer
 		String userName = "Anonymous";
 
 		switch(args.length) {
@@ -89,6 +88,21 @@ public class Client  {
 			default:
 				System.out.println("Usage is: > java Client [username] [portNumber] {serverAddress]");
 			return;
+		}
+		Scanner askforroom = new Scanner(System.in);
+		while(true){
+			System.out.print("What room would you like to join? (1 - 100) : ");
+			try{
+				int room = Integer.parseInt(askforroom.nextLine());
+				if (rooms.indexOf(room) == -1){
+					Server newserver = new Server(room + portNumber - 1, "Server " + room);
+					newserver.start();
+					rooms.add(room);
+				}
+				portNumber += (room - 1);
+				break;
+			}
+			catch(Exception e){System.out.println("Invalid room number. Please enter an integer between 1 and 100.");}
 		}
 		Client client = new Client(serverAddress, portNumber, userName);
 		if(!client.start())
@@ -120,6 +134,8 @@ public class Client  {
 					String msg = (String) sInput.readObject();
 					System.out.println(msg);
 					System.out.print("> ");
+					JavaAudioPlaySoundExample sound = new JavaAudioPlaySoundExample();
+					sound.start();
 				}
 				catch(IOException e) {
 					display("Server has close the connection: " + e);

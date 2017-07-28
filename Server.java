@@ -2,21 +2,38 @@ import java.io.*;
 import java.net.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import sun.audio.*;
 
-public class Server{
+public class Server implements Runnable{
 	public static int ID;
 	private ArrayList<ClientThread> clients;
 	private SimpleDateFormat fdate;
 	private int port;
 	private boolean serverOn;
+	private Thread t;
+	private String servername;
 	
-	public Server(int port){
+	public Server(int port, String name){
 		this.port = port;
 		fdate = new SimpleDateFormat("HH:mm:ss");
 		clients = new ArrayList<ClientThread>();
+		servername = name;
+	}
+	
+	private int getPort(){
+		return port;
 	}
 	
 	public void start(){
+		System.out.println("Starting " + servername + "...");
+		if (t == null){
+			t = new Thread(this, servername);
+			t.start();
+		}
+	}
+	
+	public void run(){
+		System.out.println("Running " + servername +"...");
 		serverOn = true;
 		try{
 			ServerSocket socket = new ServerSocket(port);
@@ -46,17 +63,13 @@ public class Server{
 	
 	// display event
 	private void display(String msg){
-		System.out.println(fdate.format(new Date()) + " " + msg);
-	}
-	
-	protected void stop(){
-		serverOn = false;
+		//System.out.println(fdate.format(new Date()) + " " + msg);
 	}
 	
 	private synchronized void pushMessage(String msg){
 		String time = fdate.format(new Date());
 		msg = time + " " + msg;
-		System.out.println(msg);
+		//System.out.println(msg);
 		for (int i = clients.size() - 1; i >= 0; i--){ // going backwards to avoid removal null error
 			ClientThread client = clients.get(i);
 			if (client.writeMessage(msg) == false){
@@ -76,7 +89,7 @@ public class Server{
 	}
 	
 	public static void main (String[] args){
-		int portnum = 1450;
+		int portnum = 1400;
 		switch(args.length) {
 			case 1:
 				try {
@@ -90,7 +103,7 @@ public class Server{
 				break;				
 		}
 		System.out.println("Using port " + portnum + ".");
-		Server server = new Server(portnum);
+		Server server = new Server(portnum, "Server 1");
 		server.start();
 	}
 	
